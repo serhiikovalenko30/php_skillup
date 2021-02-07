@@ -1,6 +1,8 @@
 <?php
-logoutUser();
-header('Location: ' . url('main_page'), true, 301);
+use App\Auth;
+
+Auth::logout();
+redirect(url('main_page'));
 
 
 

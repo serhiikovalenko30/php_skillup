@@ -1,8 +1,11 @@
 <?php
 
+use App\DataBase\DB;
+use App\Route;
+
 function create_dir($dirName) {
     if(!is_dir($dirName))
-        @mkdir($dirName, 0755, true);
+        mkdir($dirName, 0755, true);
 }
 
 function write_log($path, $fileName, $name, $email, $phone, $massage) {
@@ -24,7 +27,7 @@ function checkName($name) : bool {
 
 function checkEmail($email) : bool {
     if (isset($_POST['contact_email'])) {
-        if(preg_match('|^[-0-9а-яa-z_\.]+@[-0-9а-яa-z^\.]+\.[a-zа-я]{2,6}$|i',$email)) {
+        if(preg_match('|^[-0-9а-яa-z_.]+@[-0-9а-яa-z^.]+\.[a-zа-я]{2,6}$|i',$email)) {
             return true;
         }
         return false;
@@ -83,101 +86,8 @@ function getNews($source, $limit) : array {
     return $arNews;
 }
 
-function getLastNews($limit = 7) : array {
-    return getNews('http://k.img.com.ua/rss/ru/all_news2.0.xml' , $limit);
-}
-
-function getPopularNews($limit = 5) : array {
-    return getNews('http://k.img.com.ua/rss/ru/good_news.xml' , $limit);
-}
-
-function getPhotoNews($limit = 6) : array {
-    return getNews('http://k.img.com.ua/rss/ru/mainbyday.xml' , $limit);
-}
-
-function isAuthUser() : bool {
-    return isset($_SESSION['user']['auth']) && $_SESSION['user']['auth'] == 1;
-}
-
-function loginUser($email, $password) : bool {
-
-    $result = false;
-
-    $email_list = 'serro_ko@bigmir.net';
-    $password_list = 'serro_ko@bigmir.net';
-
-    if ($email == $email_list && $password == $password_list) {
-
-        $_SESSION = [
-            'user' => [
-                'name' => 'Serhii',
-                'auth' => 1,
-            ],
-        ];
-
-        $result = true;
-    }
-
-    return $result;
-
-}
-
-function logoutUser() {
-    if (isset($_SESSION['user'])) {
-        unset($_SESSION['user']);
-    }
-}
-
-function getRoute($path = '') : array {
-
-    global $routes;
-
-    if($path == '') {
-        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    }
-
-    $arRoute = [
-        'name' => '',
-        'page' => '404',
-        'param' => [],
-    ];
-
-    foreach ($routes as $name => $arValue) {
-        $pattern = '/^' . str_replace('/', '\/', $arValue[0]) . '$/';
-        if(preg_match($pattern, $path, $matches)) {
-            $arRoute['name'] = $name;
-            $arRoute['page'] = $arValue[2];
-
-            if(count($matches) > 1) {
-                preg_match_all("/<(.+?)>/", $arRoute[1], $matches2);
-
-                foreach ($matches2[1] as $k => $v) {
-                    $arRoute['param'][$v] = $matches[$k + 1];
-                }
-            }
-        }
-    }
-
-    return $arRoute;
-
-}
-
 function url($name, $params = []) {
-
-    global $routes;
-
-    $url = $routes[$name][1] ?? '';
-
-    if(!empty($params)) {
-        $arReplace = [];
-        foreach ($params as $key => $value) {
-            $arReplace['<' . $key . '>'] = $value;
-        }
-        if(!empty($arReplace)) {
-            $url = str_replace(array_keys($arReplace), $arReplace, $url);
-        }
-    }
-    return $url;
+    return Route::url($name, $params);
 }
 
 function printTemplateHtml($template, $arData = []) {
@@ -194,3 +104,11 @@ function includeBlock ($block) {
     }
 }
 
+function db_connect() {
+    return DB::get();
+}
+
+function redirect($url, $status = 301) {
+    header("Location: " . $url, true, $status);
+    exit;
+}

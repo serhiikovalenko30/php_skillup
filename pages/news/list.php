@@ -1,5 +1,9 @@
 <?php
-$arNews = getLastNews(10);
+
+use App\Entity\News;
+
+$arNews = News::getList();
+
 printTemplateHtml('news/index', [
     'news' => $arNews,
 ]);

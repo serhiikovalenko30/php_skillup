@@ -1,17 +1,18 @@
 <?php
+
+use App\Auth;
+
 $error = false;
 
-if(isAuthUser()) {
-    header('Location: ' . url('profile'), true, 301);
+if(Auth::isAuth()) {
+    redirect(url('profile'));
 }
 
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
-
-if (loginUser($email, $password)) {
-    header('Location: ' . url('profile'), true, 301);
-    exit;
+if (!empty($_POST) && Auth::login($email, $password)) {
+    redirect(url('profile'));
 } elseif (isset($_POST['email'])) {
     $error = 'Incorrect email or password';
 }

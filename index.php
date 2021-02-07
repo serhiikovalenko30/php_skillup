@@ -1,40 +1,42 @@
 <?php
 session_start();
+
 include($_SERVER['DOCUMENT_ROOT'] . '/include/core/functions.php');
+include($_SERVER['DOCUMENT_ROOT'] . '/app/Autoloader.php');
 
-$routes = [
-    'main_page' => ['/', '/', 'index'],
-    'news_list' => ['/news/', '/news/', 'news/list'],
-    'news_detail' => ['/news/([0-9a-z-])/', '/news/<id>/', 'news/detail'],
-    'contacts' => ['/contacts/', '/contacts/', 'contacts/index'],
-    'contacts_send_form' => ['/contacts/send/', '/contacts/send/', 'contacts/send'],
+Autoloader::register();
 
-    'detail' => ['/detail/', '/detail/', 'news/detail'],
-    'info' => ['/info/', '/info/', 'company/info'],
+use \App\Auth;
+use \App\Route;
 
-    'auth' => ['/auth/', '/auth/', 'user/auth'],
-    'logout' => ['/logout/', '/logout/', 'user/logout'],
-    'profile' => ['/profile/', '/profile/', 'user/profile'],
-];
+$route = new Route();
 
-$arRouteWOHeaderAndFooter = [
-    'contacts_send_form',
-];
-
-$arRoute = getRoute();
-
-$page_file = $_SERVER['DOCUMENT_ROOT'] . '/pages/' . $arRoute['page'] . '.php';
+$page_file = $_SERVER['DOCUMENT_ROOT'] . '/pages/' . $route->page . '.php';
 
 if(!is_file($page_file)) {
     $page_file = $_SERVER['DOCUMENT_ROOT'] . '/pages/404.php';
 }
 
+$needHeaderFooter = $route->needHeaderFooter();
 
-if (!in_array($arRoute['name'], $arRouteWOHeaderAndFooter)) {
-    printTemplateHtml('header');
+$header_template = 'header';
+$footer_template = 'footer';
+if($route->isAdminRoute()) {
+    $header_template = 'admin/header';
+    $footer_template = 'admin/footer';
+
+    if(!Auth::isAdmin()) {
+        redirect(url('main_page'));
+    }
 }
+
+if ($needHeaderFooter) {
+    printTemplateHtml($header_template);
+}
+
 include $page_file;
-if (!in_array($arRoute['name'], $arRouteWOHeaderAndFooter)) {
-    printTemplateHtml('footer');
+
+if ($needHeaderFooter) {
+    printTemplateHtml($footer_template);
 }
 

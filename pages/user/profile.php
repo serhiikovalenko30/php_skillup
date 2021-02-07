@@ -1,6 +1,8 @@
 <?php
-if(!isAuthUser()) {
-    header("Location: " . url('auth'), true, 301);
+use App\Auth;
+
+if(!Auth::isAuth()) {
+    redirect(url('auth'));
 }
 
 printTemplateHtml('user/profile');
